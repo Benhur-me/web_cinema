@@ -160,6 +160,23 @@ $result = $conn->query($query);
             overflow-y: auto;
         }
 
+        .logout {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .logout:hover {
+            background-color: #c0392b;
+            color: #f1f1f1;
+        }
+
         .sidebar a {
             padding: 15px 20px;
             text-decoration: none;
@@ -269,8 +286,9 @@ $result = $conn->query($query);
     </style>
 </head>
 <body>
-    <header>
-        <h1 class="header-title">Manage Admins</h1>
+    
+<header>
+        <h1 class="header-title">Manage Admins </h1>
         <a href="admin_logout.php" class="logout">Logout</a>
     </header>
 
@@ -281,6 +299,8 @@ $result = $conn->query($query);
         <a href="manage_bookings.php">Manage Bookings</a>
         <a href="manage_admins.php" class="active">Manage Admins</a>
         <a href="view_reports.php">View Reports</a>
+        <a href="admin_logout.php" class="logout">Logout</a>
+
     </div>
 
     <div class="main-content">

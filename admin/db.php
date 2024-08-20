@@ -2,10 +2,12 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "cinema_booking";
+$database = "cinema_booking";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Create connection
+$conn = new mysqli($servername, $username, $password, $database);
 
+// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }

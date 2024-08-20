@@ -1,12 +1,118 @@
 <?php
+
+// Include db.php to establish database connection
+include 'db.php';
+
+// New Block: Fix Poster Image Uploads
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['poster'])) {
+    // Check if the file was uploaded without errors
+    if ($_FILES['poster']['error'] == UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['poster']['tmp_name'];
+        $fileName = $_FILES['poster']['name'];
+        $fileSize = $_FILES['poster']['size'];
+        $fileType = $_FILES['poster']['type'];
+        $fileNameCmps = explode(".", $fileName);
+        $fileExtension = strtolower(end($fileNameCmps));
+
+        // Sanitize the file name to avoid any risk
+        $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
+
+        // Directory where the file is uploaded
+        $uploadFileDir = './uploads/posters/';
+        if (!is_dir($uploadFileDir)) {
+            mkdir($uploadFileDir, 0777, true);
+        }
+        $dest_path = $uploadFileDir . $newFileName;
+
+        // Allow certain file formats
+        $allowedfileExtensions = array('jpg', 'gif', 'png', 'jpeg');
+        if (in_array($fileExtension, $allowedfileExtensions)) {
+            if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                $message = 'File is successfully uploaded.';
+                $poster_path = $dest_path; // Store the path for saving in the database
+            } else {
+                $message = 'There was some error moving the file to upload directory. Please make sure the upload directory is writable by the web server.';
+            }
+        } else {
+            $message = 'Upload failed. Allowed file types: ' . implode(',', $allowedfileExtensions);
+        }
+    } elseif ($_FILES['poster']['error'] == UPLOAD_ERR_NO_FILE) {
+        $message = 'No file was uploaded.';
+        $poster_path = null; // Handle the case where no file was uploaded
+    } else {
+        $message = 'Error during file upload.';
+        $poster_path = null; // Handle the case where there was an error during file upload
+    }
+    // Store the $message to display in the UI or log it as needed
+}
+
+// Original Code Starts Here
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 if (!isset($_SESSION['admin_id'])) {
     header("Location: admin_login.php");
     exit();
 }
 
-// Connect to the database
-include 'db.php';
+// Ensure uploads directory exists
+if (!file_exists('uploads/posters')) {
+    mkdir('uploads/posters', 0777, true);
+}
+
+// Handle form submission for adding a movie
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_movie'])) {
+    $title = $_POST['title'];
+    $genre = $_POST['genre'];
+    $description = $_POST['description'];
+    $duration = $_POST['duration'];
+    $show_time = $_POST['show_time'];
+    $theater_name = $_POST['theater_name'];
+
+    // Use the poster path from the new block
+    // Convert user input show time from local time (Africa/Kampala) to UTC
+    $date = new DateTime($show_time, new DateTimeZone('Africa/Kampala'));
+    $date->setTimezone(new DateTimeZone('UTC'));
+    $utc_time = $date->format('Y-m-d H:i:s');
+
+    // Debugging
+    echo "Original Show Time: $show_time<br>";
+    echo "UTC Time: $utc_time<br>";
+
+    // Insert movie into the database
+    $query = "INSERT INTO movies (title, genre, description, duration, poster) VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sssss", $title, $genre, $description, $duration, $poster_path);
+    $stmt->execute();
+    $movie_id = $stmt->insert_id;
+    $stmt->close();
+
+    // Insert showtime into the database
+    if (!empty($utc_time) && !empty($theater_name)) {
+        $query = "INSERT INTO showtimes (movie_id, show_time, theater_name) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iss", $movie_id, $utc_time, $theater_name);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    // Redirect to the same page to prevent form resubmission
+    header("Location: manage_movies.php");
+    exit();
+}
+
+// Handle movie deletion
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_movie_id'])) {
+    $delete_movie_id = $_POST['delete_movie_id'];
+    $query = "DELETE FROM movies WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $delete_movie_id);
+    $stmt->execute();
+    $stmt->close();
+}
 
 // Fetch the logged-in admin ID
 $logged_in_admin_id = $_SESSION['admin_id'];
@@ -23,6 +129,13 @@ if ($row) {
     $is_superadmin = $row['is_superadmin'];
 }
 $stmt->close();
+
+// Fetch movies and showtimes
+$query = "SELECT m.id, m.title, m.genre, m.description, m.duration, m.poster, s.show_time, s.theater_name 
+          FROM movies m 
+          LEFT JOIN showtimes s ON m.id = s.movie_id
+          ORDER BY m.id ASC, s.show_time ASC";
+$result = $conn->query($query);
 ?>
 
 <!DOCTYPE html>
@@ -40,6 +153,23 @@ $stmt->close();
             padding: 0;
         }
 
+        .logout {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .logout:hover {
+            background-color: #c0392b;
+            color: #f1f1f1;
+        }
+        
         /* Sidebar Styles */
         .sidebar {
             width: 250px;
@@ -77,53 +207,83 @@ $stmt->close();
             width: calc(100% - 250px);
             left: 250px;
             top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-title {
-            margin: 0;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .logout {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            margin-right: 20px;
-        }
-
-        .logout:hover {
-            background-color: #c0392b;
-            color: #f1f1f1;
+            z-index: 100;
         }
 
         /* Main Content Styles */
         .main-content {
             margin-left: 250px;
             padding: 20px;
-            padding-top: 80px;
+            margin-top: 60px;
         }
 
-        .main-content h2 {
-            color: #34495e;
-            font-size: 28px;
-            margin-bottom: 20px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-group button {
+            padding: 10px 15px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #34495e;
+        }
+
+        .movie-list {
+            margin-top: 20px;
+        }
+
+        .movie-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .movie-list th, .movie-list td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .movie-list th {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .movie-list tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .movie-list tr:hover {
+            background-color: #f1f1f1;
         }
     </style>
 </head>
 <body>
+
     <header>
-        <h1 class="header-title">Manage Movies</h1>
-        <a href="admin_logout.php" class="logout">Logout</a>
+        <h1>Manage Movies</h1>
     </header>
 
     <div class="sidebar">
@@ -135,12 +295,97 @@ $stmt->close();
             <a href="manage_admins.php">Manage Admins</a>
         <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
-        
+        <a href="admin_logout.php" class="logout">Logout</a>
+
+        <!-- Add more sidebar links here -->
     </div>
 
     <div class="main-content">
-        <h2>Manage Movies</h2>
-        <!-- Page content goes here -->
+        <div class="container">
+            <!-- Add Movie Form -->
+            <h2>Add Movie</h2>
+            <form action="manage_movies.php" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="genre">Genre</label>
+                    <input type="text" id="genre" name="genre" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (in minutes)</label>
+                    <input type="number" id="duration" name="duration" required>
+                </div>
+                <div class="form-group">
+                    <label for="show_time">Show Time (Africa/Kampala Time)</label>
+                    <input type="datetime-local" id="show_time" name="show_time" required>
+                </div>
+                <div class="form-group">
+                    <label for="theater_name">Theater Name</label>
+                    <input type="text" id="theater_name" name="theater_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="poster">Poster Image</label>
+                    <input type="file" id="poster" name="poster">
+                </div>
+                <div class="form-group">
+                    <button type="submit" name="add_movie">Add Movie</button>
+                </div>
+            </form>
+
+            <!-- Display Movies -->
+            <h2>Movie List</h2>
+            <div class="movie-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Genre</th>
+                            <th>Description</th>
+                            <th>Duration</th>
+                            <th>Poster</th>
+                            <th>Show Time</th>
+                            <th>Theater Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($row['id']); ?></td>
+                            <td><?php echo htmlspecialchars($row['title']); ?></td>
+                            <td><?php echo htmlspecialchars($row['genre']); ?></td>
+                            <td><?php echo htmlspecialchars($row['description']); ?></td>
+                            <td><?php echo htmlspecialchars($row['duration']); ?></td>
+                            <td>
+                                <?php if ($row['poster']): ?>
+                                    <img src="<?php echo htmlspecialchars($row['poster']); ?>" alt="Poster" style="width: 100px;">
+                                <?php else: ?>
+                                    No Poster
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($row['show_time']); ?></td>
+                            <td><?php echo htmlspecialchars($row['theater_name']); ?></td>
+                            <td>
+                                <a href="edit_movie.php?id=<?php echo htmlspecialchars($row['id']); ?>" class="btn btn-primary">Edit</a>
+                                <form action="manage_movies.php" method="POST" style="display:inline;">
+                                    <input type="hidden" name="delete_movie_id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this movie?');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
 </body>
 </html>

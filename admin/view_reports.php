@@ -40,6 +40,23 @@ $stmt->close();
             padding: 0;
         }
 
+        .logout {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .logout:hover {
+            background-color: #c0392b;
+            color: #f1f1f1;
+        }
+
         /* Sidebar Styles */
         .sidebar {
             width: 250px;
@@ -135,6 +152,8 @@ $stmt->close();
             <a href="manage_admins.php">Manage Admins</a>
         <?php endif; ?>
         <a href="view_reports.php" class="active">View Reports</a>
+        <a href="admin_logout.php" class="logout">Logout</a>
+
         
     </div>
 

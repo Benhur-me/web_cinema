@@ -8,6 +8,11 @@ if (!isset($_SESSION['admin_id'])) {
 // Connect to the database
 include 'db.php';
 
+// Check if $conn is defined
+if (!isset($conn)) {
+    die("Database connection failed.");
+}
+
 // Fetch the logged-in admin ID
 $logged_in_admin_id = $_SESSION['admin_id'];
 
@@ -16,15 +21,21 @@ $username = "Admin"; // Default value
 $is_superadmin = 0; // Default value
 $query = "SELECT username, is_superadmin FROM admins WHERE id = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("i", $logged_in_admin_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
-if ($row) {
-    $username = $row['username'];
-    $is_superadmin = $row['is_superadmin'];
+if ($stmt) {
+    $stmt->bind_param("i", $logged_in_admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    if ($row) {
+        $username = $row['username'];
+        $is_superadmin = $row['is_superadmin'];
+    }
+    $stmt->close();
+} else {
+    echo "<p>Error preparing statement: " . htmlspecialchars($conn->error) . "</p>";
 }
-$stmt->close();
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -171,7 +182,8 @@ $stmt->close();
             <a href="manage_admins.php">Manage Admins</a>
         <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
-        
+        <a href="admin_logout.php" class="logout">Logout</a>
+
     </div>
 
     <div class="main-content">

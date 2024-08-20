@@ -32,57 +32,121 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Showtime</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
         }
 
-        header {
-            background-color: #333;
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: #2c3e50;
             color: white;
-            padding: 1em 0;
-            text-align: center;
+            padding-top: 20px;
+            overflow-x: hidden;
         }
 
-        main {
-            padding: 2em;
-            max-width: 800px;
-            margin: auto;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        form {
-            display: grid;
-            gap: 1em;
-        }
-
-        label {
-            font-weight: bold;
-            color: #333;
-        }
-
-        input[type="text"],
-        input[type="datetime-local"],
-        select {
-            width: 100%;
-            padding: 0.75em;
-            border: 1px solid #ddd;
+        .sidebar a {
+            padding: 15px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
             border-radius: 4px;
         }
 
-        input[type="submit"] {
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #34495e;
+            color: #f1f1f1;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: fixed;
+            width: calc(100% - 250px);
+            left: 250px;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logout {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .logout:hover {
+            background-color: #c0392b;
+            color: #f1f1f1;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            padding-top: 80px;
+        }
+
+        .main-content h2 {
+            color: #34495e;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-container label {
+            font-weight: bold;
+            margin-bottom: 0.5em;
+            display: block;
+        }
+
+        .form-container input[type="text"],
+        .form-container input[type="datetime-local"],
+        .form-container select {
+            width: 100%;
+            padding: 0.5em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-container input[type="submit"] {
             background-color: #007BFF;
             color: white;
             border: none;
@@ -92,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 1em;
         }
 
-        input[type="submit"]:hover {
+        .form-container input[type="submit"]:hover {
             background-color: #0056b3;
         }
 
@@ -110,29 +174,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <header>
-        <h1>Add Showtime</h1>
-        <a href="admin_dashboard.php" class="back-icon">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
+        <h1 class="header-title">Add Showtime</h1>
+        <a href="admin_logout.php" class="logout">Logout</a>
     </header>
-    <main>
+
+    <div class="sidebar">
+        <a href="admin_dashboard.php">Dashboard</a>
+        <a href="manage_movies.php">Manage Movies</a>
+        <a href="manage_showtimes.php" class="active">Manage Showtimes</a>
+        <a href="add_showtime.php">Add Showtime</a>
+        <a href="view_reports.php">View Reports</a>
+    </div>
+
+    <div class="main-content">
         <h2>Add Showtime</h2>
-        <form action="add_showtime.php" method="POST">
-            <label for="movie_id">Movie:</label>
-            <select id="movie_id" name="movie_id" required>
-                <option value="">Select a movie</option>
-                <?php while ($movie = $movies_result->fetch_assoc()): ?>
-                    <option value="<?php echo htmlspecialchars($movie['id']); ?>">
-                        <?php echo htmlspecialchars($movie['title']); ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
-            <label for="show_time">Show Time:</label>
-            <input type="datetime-local" id="show_time" name="show_time" required>
-            <label for="theater_name">Theater Name:</label>
-            <input type="text" id="theater_name" name="theater_name" required>
-            <input type="submit" value="Add Showtime">
-        </form>
-    </main>
+
+        <div class="form-container">
+            <h2>Add New Showtime</h2>
+            <form action="add_showtime.php" method="POST">
+                <label for="movie_id">Movie:</label>
+                <select id="movie_id" name="movie_id" required>
+                    <option value="">Select a movie</option>
+                    <?php while ($movie = $movies_result->fetch_assoc()): ?>
+                        <option value="<?php echo htmlspecialchars($movie['id']); ?>">
+                            <?php echo htmlspecialchars($movie['title']); ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+                <label for="show_time">Show Time:</label>
+                <input type="datetime-local" id="show_time" name="show_time" required>
+                <label for="theater_name">Theater Name:</label>
+                <input type="text" id="theater_name" name="theater_name" required>
+                <input type="submit" value="Add Showtime">
+            </form>
+        </div>
+    </div>
 </body>
 </html>
