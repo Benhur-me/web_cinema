@@ -32,16 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['poster'])) {
                 $poster_path = $dest_path; // Store the path for saving in the database
             } else {
                 $message = 'There was some error moving the file to upload directory. Please make sure the upload directory is writable by the web server.';
+                $poster_path = null;
             }
         } else {
             $message = 'Upload failed. Allowed file types: ' . implode(',', $allowedfileExtensions);
+            $poster_path = null;
         }
     } elseif ($_FILES['poster']['error'] == UPLOAD_ERR_NO_FILE) {
         $message = 'No file was uploaded.';
-        $poster_path = null; // Handle the case where no file was uploaded
+        $poster_path = null;
     } else {
         $message = 'Error during file upload.';
-        $poster_path = null; // Handle the case where there was an error during file upload
+        $poster_path = null;
     }
     // Store the $message to display in the UI or log it as needed
 }
@@ -201,13 +203,18 @@ $result = $conn->query($query);
         header {
             background-color: #2c3e50;
             color: white;
-            padding: 15px;
+            padding: -6px;
             text-align: center;
             position: fixed;
             width: calc(100% - 250px);
             left: 250px;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 10px;
+            /* border: 1px solid green; */
         }
 
         /* Main Content Styles */
@@ -220,6 +227,7 @@ $result = $conn->query($query);
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            margin-top: 40px;
         }
 
         .form-group {
@@ -275,17 +283,49 @@ $result = $conn->query($query);
             background-color: #f9f9f9;
         }
 
-        .movie-list tr:hover {
-            background-color: #f1f1f1;
+        .movie-list img {
+            max-width: 100px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px; /* Adjust the gap as needed */
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            margin: 0; /* Remove margin to avoid extra space */
+        }
+
+        .edit-btn {
+            background-color: #2ecc71; /* Green */
+        }
+
+        .edit-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c; /* Red */
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
         }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>Manage Movies</h1>
+<header>
+        <h1 class="header-title">Manage Movies</h1>
+        <a href="admin_logout.php" class="logout">Logout</a>
     </header>
-
+    
     <div class="sidebar">
         <a href="admin_dashboard.php">Dashboard</a>
         <a href="manage_movies.php" class="active">Manage Movies</a>
@@ -296,15 +336,12 @@ $result = $conn->query($query);
         <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
         <a href="admin_logout.php" class="logout">Logout</a>
-
-        <!-- Add more sidebar links here -->
     </div>
-
+    
     <div class="main-content">
         <div class="container">
-            <!-- Add Movie Form -->
-            <h2>Add Movie</h2>
-            <form action="manage_movies.php" method="POST" enctype="multipart/form-data">
+            <h2>Add New Movie</h2>
+            <form action="manage_movies.php" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="title">Title</label>
                     <input type="text" id="title" name="title" required>
@@ -318,11 +355,11 @@ $result = $conn->query($query);
                     <textarea id="description" name="description" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="duration">Duration (in minutes)</label>
+                    <label for="duration">Duration (minutes)</label>
                     <input type="number" id="duration" name="duration" required>
                 </div>
                 <div class="form-group">
-                    <label for="show_time">Show Time (Africa/Kampala Time)</label>
+                    <label for="show_time">Show Time</label>
                     <input type="datetime-local" id="show_time" name="show_time" required>
                 </div>
                 <div class="form-group">
@@ -331,14 +368,13 @@ $result = $conn->query($query);
                 </div>
                 <div class="form-group">
                     <label for="poster">Poster Image</label>
-                    <input type="file" id="poster" name="poster">
+                    <input type="file" id="poster" name="poster" accept="image/*">
                 </div>
                 <div class="form-group">
                     <button type="submit" name="add_movie">Add Movie</button>
                 </div>
             </form>
 
-            <!-- Display Movies -->
             <h2>Movie List</h2>
             <div class="movie-list">
                 <table>
@@ -365,18 +401,18 @@ $result = $conn->query($query);
                             <td><?php echo htmlspecialchars($row['duration']); ?></td>
                             <td>
                                 <?php if ($row['poster']): ?>
-                                    <img src="<?php echo htmlspecialchars($row['poster']); ?>" alt="Poster" style="width: 100px;">
+                                    <img src="<?php echo htmlspecialchars($row['poster']); ?>" alt="Poster">
                                 <?php else: ?>
                                     No Poster
                                 <?php endif; ?>
                             </td>
                             <td><?php echo htmlspecialchars($row['show_time']); ?></td>
                             <td><?php echo htmlspecialchars($row['theater_name']); ?></td>
-                            <td>
-                                <a href="edit_movie.php?id=<?php echo htmlspecialchars($row['id']); ?>" class="btn btn-primary">Edit</a>
-                                <form action="manage_movies.php" method="POST" style="display:inline;">
+                            <td class="actions">
+                                <a href="edit_movie.php?id=<?php echo htmlspecialchars($row['id']); ?>" class="edit-btn">Edit</a>
+                                <form action="" method="POST" style="display:inline;">
                                     <input type="hidden" name="delete_movie_id" value="<?php echo htmlspecialchars($row['id']); ?>">
-                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this movie?');">Delete</button>
+                                    <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this movie?');">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -386,6 +422,5 @@ $result = $conn->query($query);
             </div>
         </div>
     </div>
-
 </body>
 </html>

@@ -116,7 +116,8 @@ $result = $conn->query($query);
             padding: 15px;
             text-align: center;
             position: fixed;
-            width: 100%;
+            width: calc(100% - 250px);
+            left: 250px;
             top: 0;
             z-index: 1000;
             display: flex;
@@ -128,6 +129,7 @@ $result = $conn->query($query);
             margin: 0;
             font-size: 24px;
             font-weight: bold;
+            
         }
 
         .logout {
