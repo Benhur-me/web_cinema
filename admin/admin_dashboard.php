@@ -51,6 +51,9 @@ $conn->close();
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         /* Sidebar Styles */
@@ -124,6 +127,7 @@ $conn->close();
             margin-left: 250px;
             padding: 20px;
             padding-top: 80px;
+            flex: 1;
         }
 
         .main-content h2 {
@@ -165,6 +169,22 @@ $conn->close();
             font-size: 24px;
             margin-left: 10px;
         }
+
+        /* Footer Styles */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        footer p {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -183,7 +203,7 @@ $conn->close();
         <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
         <a href="admin_logout.php" class="logout">Logout</a>
-
+ 
     </div>
 
     <div class="main-content">
@@ -211,5 +231,10 @@ $conn->close();
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; <?php echo date("Y"); ?> Cinema All rights reserved.</p>
+    </footer>
 </body>
 </html>

@@ -153,6 +153,7 @@ $result = $conn->query($query);
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            padding-bottom: 40px; /* Space for footer */
         }
 
         .logout {
@@ -279,55 +280,60 @@ $result = $conn->query($query);
             color: white;
         }
 
-        .movie-list tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .movie-list img {
+        .movie-list td img {
             max-width: 100px;
         }
 
-        .actions {
-            display: flex;
-            gap: 10px; /* Adjust the gap as needed */
-        }
-
-        .edit-btn, .delete-btn {
-            padding: 6px 12px;
+        .btn-edit {
+            background-color: #3498db;
+            color: white;
             border: none;
             border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        .btn-edit:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
             color: white;
-            font-size: 14px;
-            text-align: center;
-            margin: 0; /* Remove margin to avoid extra space */
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
 
-        .edit-btn {
-            background-color: #2ecc71; /* Green */
-        }
-
-        .edit-btn:hover {
-            background-color: #27ae60;
-        }
-
-        .delete-btn {
-            background-color: #e74c3c; /* Red */
-        }
-
-        .delete-btn:hover {
+        .btn-danger:hover {
             background-color: #c0392b;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: calc(100% - 250px);
+            left: 250px;
         }
     </style>
 </head>
 <body>
-<header>
-        <h1 class="header-title">Manage Movies</h1>
-        <a href="admin_logout.php" class="logout">Logout</a>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <a href="logout.php" class="logout">Logout</a>
     </header>
     
     <div class="sidebar">
-        <a href="admin_dashboard.php">Dashboard</a>
+    <a href="admin_dashboard.php">Dashboard</a>
         <a href="manage_movies.php" class="active">Manage Movies</a>
         <a href="manage_users.php">Manage Users</a>
         <a href="manage_bookings.php">Manage Bookings</a>
@@ -355,11 +361,11 @@ $result = $conn->query($query);
                     <textarea id="description" name="description" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="duration">Duration (minutes)</label>
-                    <input type="number" id="duration" name="duration" required>
+                    <label for="duration">Duration</label>
+                    <input type="text" id="duration" name="duration" required>
                 </div>
                 <div class="form-group">
-                    <label for="show_time">Show Time</label>
+                    <label for="show_time">Show Time (Africa/Kampala)</label>
                     <input type="datetime-local" id="show_time" name="show_time" required>
                 </div>
                 <div class="form-group">
@@ -367,60 +373,56 @@ $result = $conn->query($query);
                     <input type="text" id="theater_name" name="theater_name" required>
                 </div>
                 <div class="form-group">
-                    <label for="poster">Poster Image</label>
-                    <input type="file" id="poster" name="poster" accept="image/*">
+                    <label for="poster">Poster</label>
+                    <input type="file" id="poster" name="poster" accept="image/*" required>
                 </div>
                 <div class="form-group">
                     <button type="submit" name="add_movie">Add Movie</button>
                 </div>
             </form>
-
-            <h2>Movie List</h2>
+            
             <div class="movie-list">
+                <h2>Existing Movies</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Poster</th>
                             <th>Title</th>
                             <th>Genre</th>
                             <th>Description</th>
                             <th>Duration</th>
-                            <th>Poster</th>
                             <th>Show Time</th>
                             <th>Theater Name</th>
-                            <th>Actions</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['id']); ?></td>
-                            <td><?php echo htmlspecialchars($row['title']); ?></td>
-                            <td><?php echo htmlspecialchars($row['genre']); ?></td>
-                            <td><?php echo htmlspecialchars($row['description']); ?></td>
-                            <td><?php echo htmlspecialchars($row['duration']); ?></td>
-                            <td>
-                                <?php if ($row['poster']): ?>
-                                    <img src="<?php echo htmlspecialchars($row['poster']); ?>" alt="Poster">
-                                <?php else: ?>
-                                    No Poster
-                                <?php endif; ?>
-                            </td>
-                            <td><?php echo htmlspecialchars($row['show_time']); ?></td>
-                            <td><?php echo htmlspecialchars($row['theater_name']); ?></td>
-                            <td class="actions">
-                                <a href="edit_movie.php?id=<?php echo htmlspecialchars($row['id']); ?>" class="edit-btn">Edit</a>
-                                <form action="" method="POST" style="display:inline;">
-                                    <input type="hidden" name="delete_movie_id" value="<?php echo htmlspecialchars($row['id']); ?>">
-                                    <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this movie?');">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
+                        <?php while ($row = $result->fetch_assoc()) { ?>
+                            <tr>
+                                <td><img src="<?php echo $row['poster']; ?>" alt="Poster"></td>
+                                <td><?php echo $row['title']; ?></td>
+                                <td><?php echo $row['genre']; ?></td>
+                                <td><?php echo $row['description']; ?></td>
+                                <td><?php echo $row['duration']; ?></td>
+                                <td><?php echo $row['show_time']; ?></td>
+                                <td><?php echo $row['theater_name']; ?></td>
+                                <td>
+                                    <a href="edit_movie.php?id=<?php echo $row['id']; ?>" class="btn-edit">Edit</a>
+                                    <form action="manage_movies.php" method="post" style="display:inline;">
+                                        <input type="hidden" name="delete_movie_id" value="<?php echo $row['id']; ?>">
+                                        <button type="submit" class="btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php } ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+    
+    <footer>
+        &copy; 2024 Cinema. All Rights Reserved.
+    </footer>
 </body>
 </html>

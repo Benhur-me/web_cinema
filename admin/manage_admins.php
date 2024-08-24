@@ -107,6 +107,9 @@ $result = $conn->query($query);
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
         /* Header Styles */
@@ -115,10 +118,10 @@ $result = $conn->query($query);
             color: white;
             padding: 15px;
             text-align: center;
-            position: fixed;
+            position: sticky;
+            top: 0;
             width: calc(100% - 250px);
             left: 250px;
-            top: 0;
             z-index: 1000;
             display: flex;
             justify-content: space-between;
@@ -129,7 +132,6 @@ $result = $conn->query($query);
             margin: 0;
             font-size: 24px;
             font-weight: bold;
-            
         }
 
         .logout {
@@ -162,23 +164,6 @@ $result = $conn->query($query);
             overflow-y: auto;
         }
 
-        .logout {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            margin-right: 20px;
-        }
-
-        .logout:hover {
-            background-color: #c0392b;
-            color: #f1f1f1;
-        }
-
         .sidebar a {
             padding: 15px 20px;
             text-decoration: none;
@@ -194,19 +179,23 @@ $result = $conn->query($query);
         }
 
         /* Main Content Styles */
-        .main-content {
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             margin-left: 250px;
             padding: 20px;
             padding-top: 80px;
+            overflow-y: auto;
         }
 
-        .main-content h2 {
+        .content h2 {
             color: #34495e;
             font-size: 28px;
             margin-bottom: 20px;
         }
 
-        .main-content .error {
+        .content .error {
             color: #e74c3c;
             font-weight: bold;
         }
@@ -285,36 +274,46 @@ $result = $conn->query($query);
         .button:hover {
             background-color: #c0392b;
         }
+
+        /* Footer Styles */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            position: relative;
+            width: calc(100% - 250px);
+            left: 250px;
+        }
     </style>
 </head>
 <body>
-    
-<header>
-        <h1 class="header-title">Manage Admins </h1>
-        <a href="admin_logout.php" class="logout">Logout</a>
+    <header>
+        <h1 class="header-title">Manage Admins</h1>
+        <a href="logout.php" class="logout">Logout</a>
     </header>
 
     <div class="sidebar">
-        <a href="admin_dashboard.php">Dashboard</a>
+    <a href="admin_dashboard.php">Dashboard</a>
         <a href="manage_movies.php">Manage Movies</a>
         <a href="manage_users.php">Manage Users</a>
         <a href="manage_bookings.php">Manage Bookings</a>
-        <a href="manage_admins.php" class="active">Manage Admins</a>
+        <?php if ($is_superadmin): ?>
+            <a href="manage_admins.php" class="active">Manage Admins</a>
+        <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
         <a href="admin_logout.php" class="logout">Logout</a>
-
+        <!-- Add more links as needed -->
     </div>
 
-    <div class="main-content">
-        <h2>Manage Admins</h2>
-        
+    <div class="content">
         <?php if ($message): ?>
             <p class="error"><?php echo htmlspecialchars($message); ?></p>
         <?php endif; ?>
 
         <?php if ($is_superadmin): ?>
-            <form method="post" action="">
-                <h3>Add New Admin</h3>
+            <h3>Add New Admin</h3>
+            <form action="manage_admins.php" method="post">
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="email" name="email" placeholder="Email" required>
                 <input type="password" name="password" placeholder="Password" required>
@@ -327,27 +326,39 @@ $result = $conn->query($query);
 
         <h3>Existing Admins</h3>
         <table>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Superadmin</th>
-                <th>Actions</th>
-            </tr>
-            <?php while ($row = $result->fetch_assoc()): ?>
+            <thead>
                 <tr>
-                    <td><?php echo htmlspecialchars($row['id']); ?></td>
-                    <td><?php echo htmlspecialchars($row['username']); ?></td>
-                    <td><?php echo htmlspecialchars($row['email']); ?></td>
-                    <td><?php echo $row['is_superadmin'] ? 'Yes' : 'No'; ?></td>
-                    <td>
-                        <?php if ($is_superadmin && $row['id'] != $logged_in_admin_id): ?>
-                            <a href="?delete_id=<?php echo htmlspecialchars($row['id']); ?>" class="button">Delete</a>
-                        <?php endif; ?>
-                    </td>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Superadmin</th>
+                    <th>Action</th>
                 </tr>
-            <?php endwhile; ?>
+            </thead>
+            <tbody>
+                <?php while ($row = $result->fetch_assoc()): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['id']); ?></td>
+                        <td><?php echo htmlspecialchars($row['username']); ?></td>
+                        <td><?php echo htmlspecialchars($row['email']); ?></td>
+                        <td><?php echo $row['is_superadmin'] ? 'Yes' : 'No'; ?></td>
+                        <td>
+                            <?php if ($is_superadmin && $row['id'] != $logged_in_admin_id): ?>
+                                <a href="?delete_id=<?php echo htmlspecialchars($row['id']); ?>" class="button" onclick="return confirm('Are you sure you want to delete this admin?');">Delete</a>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
         </table>
     </div>
+
+    <footer>
+        &copy; 2024 Cinema. All rights reserved.
+    </footer>
 </body>
 </html>
+
+<?php
+$conn->close();
+?>

@@ -38,6 +38,9 @@ $stmt->close();
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .logout {
@@ -128,12 +131,29 @@ $stmt->close();
             margin-left: 250px;
             padding: 20px;
             padding-top: 80px;
+            flex: 1; /* Allows main content to grow */
         }
 
         .main-content h2 {
             color: #34495e;
             font-size: 28px;
             margin-bottom: 20px;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        footer p {
+            margin: 0;
         }
     </style>
 </head>
@@ -153,13 +173,15 @@ $stmt->close();
         <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
         <a href="admin_logout.php" class="logout">Logout</a>
-
-        
     </div>
 
     <div class="main-content">
         <h2>Manage Users</h2>
         <!-- Page content goes here -->
     </div>
+
+    <footer>
+        <p>© 2024 Cinema. All rights reserved.</p>
+    </footer>
 </body>
 </html>

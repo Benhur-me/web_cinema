@@ -106,34 +106,34 @@ $stmt->close();
             font-weight: bold;
         }
 
-        .logout {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            margin-right: 20px;
-        }
-
-        .logout:hover {
-            background-color: #c0392b;
-            color: #f1f1f1;
-        }
-
         /* Main Content Styles */
         .main-content {
             margin-left: 250px;
             padding: 20px;
             padding-top: 80px;
+            padding-bottom: 50px; /* Space for footer */
         }
 
         .main-content h2 {
             color: #34495e;
             font-size: 28px;
             margin-bottom: 20px;
+        }
+
+          /* Footer Styles */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        footer p {
+            margin: 0;
         }
     </style>
 </head>
@@ -153,13 +153,18 @@ $stmt->close();
         <?php endif; ?>
         <a href="view_reports.php" class="active">View Reports</a>
         <a href="admin_logout.php" class="logout">Logout</a>
-
-        
     </div>
 
     <div class="main-content">
         <h2>View Reports</h2>
         <!-- Page content goes here -->
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; <?php echo date('Y'); ?> Cinema. All Rights Reserved.</p>
+    </footer>
 </body>
 </html>
+
+<?php $conn->close(); ?>
