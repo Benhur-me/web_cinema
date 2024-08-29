@@ -33,11 +33,18 @@ $stmt->close();
     <title>View Reports</title>
     <style>
         /* General Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .logout {
@@ -68,6 +75,7 @@ $stmt->close();
             color: white;
             padding-top: 20px;
             overflow-x: hidden;
+            transition: transform 0.3s ease;
         }
 
         .sidebar a {
@@ -112,6 +120,7 @@ $stmt->close();
             padding: 20px;
             padding-top: 80px;
             padding-bottom: 50px; /* Space for footer */
+            flex: 1;
         }
 
         .main-content h2 {
@@ -120,7 +129,7 @@ $stmt->close();
             margin-bottom: 20px;
         }
 
-          /* Footer Styles */
+        /* Footer Styles */
         footer {
             background-color: #2c3e50;
             color: white;
@@ -128,17 +137,75 @@ $stmt->close();
             text-align: center;
             position: fixed;
             bottom: 0;
-            width: 100%;
+            width: calc(100% - 250px);
+            left: 250px;
             margin-top: auto;
         }
 
         footer p {
             margin: 0;
         }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 200px;
+            }
+
+            .sidebar a {
+                padding: 15px 20px;
+                text-decoration: none;
+                font-size: 18px;
+                color: white;
+                display: block;
+                border-radius: 4px;
+                margin-top: 60px;
+            
+        }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            header {
+                width: 100%;
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+            }
+
+            footer {
+                width: 100%;
+                left: 0;
+            }
+
+            .hamburger {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                margin-left: 10px;
+            }
+
+            .hamburger div {
+                width: 25px;
+                height: 3px;
+                background-color: white;
+                margin: 4px 0;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
+        <div class="hamburger" onclick="toggleSidebar()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
         <h1 class="header-title">View Reports</h1>
         <a href="admin_logout.php" class="logout">Logout</a>
     </header>
@@ -164,6 +231,13 @@ $stmt->close();
     <footer>
         <p>&copy; <?php echo date('Y'); ?> Cinema. All Rights Reserved.</p>
     </footer>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+    </script>
 </body>
 </html>
 

@@ -41,6 +41,7 @@ $stmt->close();
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            padding-bottom: 40px; /* Space for footer */
         }
 
         .logout {
@@ -71,6 +72,8 @@ $stmt->close();
             color: white;
             padding-top: 20px;
             overflow-x: hidden;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
         }
 
         .sidebar a {
@@ -80,6 +83,7 @@ $stmt->close();
             color: white;
             display: block;
             border-radius: 4px;
+            
         }
 
         .sidebar a:hover, .sidebar a.active {
@@ -101,6 +105,7 @@ $stmt->close();
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: width 0.3s ease;
         }
 
         .header-title {
@@ -109,21 +114,19 @@ $stmt->close();
             font-weight: bold;
         }
 
-        .logout {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            font-size: 16px;
+        /* Hamburger Icon */
+        .hamburger {
+            display: none;
+            flex-direction: column;
             cursor: pointer;
-            text-decoration: none;
-            margin-right: 20px;
+            margin-left: 10px;
         }
 
-        .logout:hover {
-            background-color: #c0392b;
-            color: #f1f1f1;
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 4px 0;
         }
 
         /* Main Content Styles */
@@ -148,17 +151,74 @@ $stmt->close();
             text-align: center;
             position: fixed;
             bottom: 0;
-            width: 100%;
-            margin-top: auto;
+            width: calc(100% - 250px);
+            left: 250px;
+            box-sizing: border-box; /* Ensure proper box sizing */
         }
 
         footer p {
             margin: 0;
         }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+                transform: translateX(-100%); /* Hidden by default */
+            }
+
+            .sidebar a {
+                padding: 15px 20px;
+                text-decoration: none;
+                font-size: 18px;
+                color: white;
+                display: block;
+                border-radius: 4px;
+                margin-top: 60px;
+            
+        }
+
+            .sidebar.open {
+                transform: translateX(0); /* Show when toggled */
+            }
+
+            header {
+                width: 100%;
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            footer {
+                width: 100%;
+                left: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
+        <div class="hamburger" onclick="toggleSidebar()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
         <h1 class="header-title">Manage Users</h1>
         <a href="admin_logout.php" class="logout">Logout</a>
     </header>
@@ -181,7 +241,14 @@ $stmt->close();
     </div>
 
     <footer>
-        <p>© 2024 Cinema. All rights reserved.</p>
+        <p>&copy; 2024 Cinema Admin Panel</p>
     </footer>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+    </script>
 </body>
 </html>

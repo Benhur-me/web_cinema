@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
     <style>
         body, h2, p, input, button {
@@ -54,15 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         .container {
             position: relative;
-            width: 400px;
+            width: 100%;
+            max-width: 400px;
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             animation: slideIn 0.5s ease-out;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .form-container {
-            padding: 30px;
             text-align: center;
         }
         .error {
@@ -76,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 24px;
         }
         input {
-            width: 100%;
+            width: calc(100% - 30px);
             padding: 15px;
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -84,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 16px;
         }
         button {
-            width: 100%;
+            width: calc(100% - 30px);
             padding: 15px;
             background: #3498db;
             border: none;
@@ -118,6 +121,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 15px;
+            }
+            input, button {
+                width: 100%;
             }
         }
     </style>

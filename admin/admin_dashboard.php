@@ -67,6 +67,8 @@ $conn->close();
             color: white;
             padding-top: 20px;
             overflow-x: hidden;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
         }
 
         .sidebar a {
@@ -120,6 +122,21 @@ $conn->close();
         .logout:hover {
             background-color: #c0392b;
             color: #f1f1f1;
+        }
+
+        /* Hamburger Icon */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 4px 0;
         }
 
         /* Main Content Styles */
@@ -178,17 +195,90 @@ $conn->close();
             text-align: center;
             position: fixed;
             bottom: 0;
-            width: 100%;
-            margin-top: auto;
+            width: calc(100% - 250px);
+            left: 250px;
         }
 
         footer p {
             margin: 0;
         }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            header {
+                width: calc(100% - 200px);
+                left: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+            }
+
+            footer {
+                width: calc(100% - 200px);
+                left: 200px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar a {
+                padding: 15px 20px;
+                text-decoration: none;
+                font-size: 18px;
+                color: white;
+                display: block;
+                border-radius: 4px;
+                margin-top: 60px;
+            
+        }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            header {
+                width: 100%;
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            footer {
+                width: 100%;
+                left: 0;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .cards {
+                flex-direction: column;
+            }
+
+            .card {
+                min-width: auto;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
+        <div class="hamburger" onclick="toggleSidebar()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
         <h1 class="header-title">Admin Dashboard</h1>
         <a href="admin_logout.php" class="logout">Logout</a>
     </header>
@@ -203,7 +293,6 @@ $conn->close();
         <?php endif; ?>
         <a href="view_reports.php">View Reports</a>
         <a href="admin_logout.php" class="logout">Logout</a>
- 
     </div>
 
     <div class="main-content">
@@ -236,5 +325,12 @@ $conn->close();
     <footer>
         <p>&copy; <?php echo date("Y"); ?> Cinema All rights reserved.</p>
     </footer>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+    </script>
 </body>
 </html>
