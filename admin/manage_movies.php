@@ -16,7 +16,46 @@ if ($conn->connect_error) {
 // Handle form submission for adding or deleting movies
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_movie'])) {
-        // Add movie code here (for example, to insert a new movie into the database)
+        // Add movie code here (to insert a new movie into the database)
+        $title = $_POST['title'];
+        $genre = $_POST['genre'];
+        $show_time = $_POST['show_time'];
+        $description = $_POST['description'];
+
+        // Convert show time to the Africa/Kampala timezone
+        $date = new DateTime($show_time, new DateTimeZone('Africa/Kampala'));
+        $formatted_show_time = $date->format('Y-m-d H:i:s');
+
+        // Handle file upload
+        $poster = '';
+        if (isset($_FILES['poster']) && $_FILES['poster']['error'] == 0) {
+            $poster_dir = 'uploads/'; // Directory where posters will be saved
+            $poster_file = $poster_dir . basename($_FILES['poster']['name']);
+            $poster_file_type = strtolower(pathinfo($poster_file, PATHINFO_EXTENSION));
+
+            // Check file type (allow only JPEG, PNG, GIF)
+            if (in_array($poster_file_type, ['jpg', 'jpeg', 'png', 'gif'])) {
+                if (move_uploaded_file($_FILES['poster']['tmp_name'], $poster_file)) {
+                    $poster = $poster_file; // Save the file path to the database
+                } else {
+                    echo "Error uploading poster file.";
+                }
+            } else {
+                echo "Only JPG, JPEG, PNG, & GIF files are allowed.";
+            }
+        }
+
+        // Insert movie into the database
+        $stmt = $conn->prepare("INSERT INTO movies (title, genre, show_time, description, poster) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $title, $genre, $formatted_show_time, $description, $poster);
+        
+        if ($stmt->execute()) {
+            echo "New movie added successfully.";
+        } else {
+            echo "Error adding movie: " . $stmt->error;
+        }
+
+        $stmt->close();
     } elseif (isset($_POST['delete_movie'])) {
         $movie_id = intval($_POST['movie_id']);
         $sql = "DELETE FROM movies WHERE id = $movie_id";
@@ -273,34 +312,39 @@ $conn->close();
         }
 
         th, td {
-            padding: 8px;
+            padding: 10px;
             text-align: left;
-            overflow: hidden; /* Prevent content overflow */
-            text-overflow: ellipsis; /* Add ellipsis for overflow text */
+            word-wrap: break-word; /* Prevent overflow by wrapping text */
         }
 
         th {
-            background-color: #2c3e50;
-            color: white;
+            background-color: #f4f4f4;
         }
 
-        .btn-edit, .btn-danger {
-            text-decoration: none;
-            padding: 5px 10px;
-            color: white;
-            border-radius: 4px;
-        }
-
+        /* Button Styles */
         .btn-edit {
-            background-color: #3498db;
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
         }
 
         .btn-edit:hover {
-            background-color: #2980b9;
+            background-color: #e67e22;
         }
 
         .btn-danger {
             background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
         }
 
         .btn-danger:hover {
@@ -346,8 +390,8 @@ $conn->close();
                 <input type="text" id="genre" name="genre" required>
             </div>
             <div class="form-group">
-                <label for="release_date">Release Date (dd-mm-yyyy)</label>
-                <input type="text" id="release_date" name="release_date" required>
+                <label for="show_time">Show Time (Africa/Kampala)</label>
+                <input type="datetime-local" id="show_time" name="show_time" required>
             </div>
             <div class="form-group">
                 <label for="description">Description</label>
@@ -370,7 +414,7 @@ $conn->close();
                         <th>ID</th>
                         <th>Title</th>
                         <th>Genre</th>
-                        <th>Release Date</th>
+                        <th>Show Time</th>
                         <th>Description</th>
                         <th>Poster</th>
                         <th>Actions</th>
@@ -383,7 +427,7 @@ $conn->close();
                             <td><?php echo htmlspecialchars($movie['id'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($movie['title'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($movie['genre'] ?? ''); ?></td>
-                            <td><?php echo htmlspecialchars($movie['release_date'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($movie['show_time'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($movie['description'] ?? ''); ?></td>
                             <td>
                                 <?php if (!empty($movie['poster'])): ?>
