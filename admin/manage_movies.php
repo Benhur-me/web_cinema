@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $genre = $_POST['genre'];
         $show_time = $_POST['show_time'];
         $description = $_POST['description'];
+        $price = $_POST['price']; // New price field
 
         // Convert show time to the Africa/Kampala timezone
         $date = new DateTime($show_time, new DateTimeZone('Africa/Kampala'));
@@ -46,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insert movie into the database
-        $stmt = $conn->prepare("INSERT INTO movies (title, genre, show_time, description, poster) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $title, $genre, $formatted_show_time, $description, $poster);
+        $stmt = $conn->prepare("INSERT INTO movies (title, genre, show_time, description, price, poster) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssds", $title, $genre, $formatted_show_time, $description, $price, $poster);
         
         if ($stmt->execute()) {
             echo "New movie added successfully.";
@@ -84,6 +85,7 @@ if ($result->num_rows > 0) {
 
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -240,8 +242,7 @@ $conn->close();
                 display: block;
                 border-radius: 4px;
                 margin-top: 60px;
-            
-        }
+            }
 
             .sidebar.open {
                 transform: translateX(0);
@@ -398,6 +399,10 @@ $conn->close();
                 <textarea id="description" name="description" rows="4" required></textarea>
             </div>
             <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" step="0.01" required>
+            </div>
+            <div class="form-group">
                 <label for="poster">Poster</label>
                 <input type="file" id="poster" name="poster">
             </div>
@@ -416,6 +421,7 @@ $conn->close();
                         <th>Genre</th>
                         <th>Show Time</th>
                         <th>Description</th>
+                        <th>Price</th> <!-- New column -->
                         <th>Poster</th>
                         <th>Actions</th>
                     </tr>
@@ -429,6 +435,7 @@ $conn->close();
                             <td><?php echo htmlspecialchars($movie['genre'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($movie['show_time'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($movie['description'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($movie['price'] ?? ''); ?></td> <!-- Display price -->
                             <td>
                                 <?php if (!empty($movie['poster'])): ?>
                                     <img src="<?php echo htmlspecialchars($movie['poster'] ?? ''); ?>" alt="Poster">
@@ -447,7 +454,7 @@ $conn->close();
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7">No movies found.</td>
+                            <td colspan="8">No movies found.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
