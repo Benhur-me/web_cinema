@@ -40,6 +40,8 @@ if ($result->num_rows > 0) {
 }
 
 // Handle booking submission
+$success_message = '';
+$error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_movie'])) {
     $movie_id = intval($_POST['movie_id']);
     $num_tickets = intval($_POST['num_tickets']);
@@ -100,7 +102,7 @@ $conn->close();
             text-align: center;
             padding: 15px;
             border-radius: 8px;
-            display: none; /* Start as hidden */
+            display: none;
         }
 
         .alert-success {
@@ -188,14 +190,7 @@ $conn->close();
             margin-top: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: max-height 0.5s ease;
             overflow: hidden;
-            max-height: 0;
-        }
-
-        .booking-form.show {
-            display: block;
-            max-height: 500px;
         }
 
         .form-group {
@@ -217,6 +212,29 @@ $conn->close();
             font-size: 16px;
         }
 
+        /* Flex container for user initial and logout button */
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        /* Circle style for user initial */
+        .user-initial-circle {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 15px; /* Space between circle and logout button */
+        }
+
         .logout-btn {
             background-color: #3498db;
             color: #fff;
@@ -225,7 +243,6 @@ $conn->close();
             cursor: pointer;
             border-radius: 8px;
             font-size: 16px;
-            float: right;
         }
 
         .logout-btn:hover {
@@ -233,56 +250,65 @@ $conn->close();
         }
     </style>
     <script>
+        // Show the booking form for the selected movie
         function showBookingForm(movieId) {
-            var form = document.getElementById('booking-form-' + movieId);
-            form.classList.toggle('show');
+            var bookingForm = document.getElementById('booking-form-' + movieId);
+            bookingForm.style.display = bookingForm.style.display === "block" ? "none" : "block";
         }
 
-        function showMessage(type, message) {
-            var messageDiv = document.querySelector(`.${type}-message`);
-            messageDiv.textContent = message;
-            messageDiv.style.display = 'block';
+        // Calculate and show the total price in a pop-up before submitting
+        function calculateAndShowPrice(movieId, moviePrice) {
+    var numTickets = document.querySelector(`#booking-form-${movieId} #num_tickets`).value;
+    if (numTickets <= 0) {
+        alert("Please enter a valid number of tickets.");
+        return false;
+    }
+    
+    var totalPrice = numTickets * moviePrice;
+    
+    // Show pop-up with OK and Cancel options
+    var confirmBooking = confirm("The total amount to pay is: $" + totalPrice.toFixed(2) + " at the cinema cashier.\n\nDo you want to proceed?");
+    
+    // If user clicks Cancel, stop the form submission
+    if (!confirmBooking) {
+        return false;
+    }
 
-            // Automatically hide the message after 5 seconds
-            setTimeout(function() {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
+    return true; // User clicked OK, proceed with booking
+}
 
-        // Show welcome message temporarily
-        function showWelcomeMessage(username) {
-            var welcomeDiv = document.createElement('div');
-            welcomeDiv.className = 'alert-message alert-success';
-            welcomeDiv.textContent = "Welcome, " + username + "!";
-            document.querySelector('.container').insertBefore(welcomeDiv, document.querySelector('.movies-container'));
 
-            // Show the message
-            welcomeDiv.style.display = 'block';
-
-            // Automatically hide the message after 5 seconds
-            setTimeout(function() {
-                welcomeDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Call function to show welcome message on page load
+        // Show success or error message on page load if they exist
         window.onload = function() {
-            <?php if (isset($success_message)): ?>
-                showMessage('alert-success', "<?php echo $success_message; ?>");
-            <?php elseif (isset($error_message)): ?>
-                showMessage('alert-error', "<?php echo $error_message; ?>");
+            var successMessage = document.querySelector('.alert-success');
+            var errorMessage = document.querySelector('.alert-error');
+
+            <?php if (!empty($success_message)): ?>
+                successMessage.textContent = "<?php echo addslashes($success_message); ?>";
+                successMessage.style.display = 'block';
+                setTimeout(() => { successMessage.style.display = 'none'; }, 5000);
+            <?php elseif (!empty($error_message)): ?>
+                errorMessage.textContent = "<?php echo addslashes($error_message); ?>";
+                errorMessage.style.display = 'block';
+                setTimeout(() => { errorMessage.style.display = 'none'; }, 5000);
             <?php endif; ?>
-            showWelcomeMessage("<?php echo htmlspecialchars($username); ?>");
         };
     </script>
 </head>
 <body>
     <div class="container">
-        <!-- Success and Error messages -->
+        <!-- Success and Error Messages -->
         <div class="alert-message alert-success"></div>
         <div class="alert-message alert-error"></div>
-        
-        <a href="logout.php" class="logout-btn">Logout</a>
+
+        <!-- User Info -->
+        <div class="user-info">
+            <div class="user-initial-circle"><?php echo strtoupper(substr($username, 0, 1)); ?></div>
+            <form action="logout.php" method="POST">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+
         <h1>Available Movies</h1>
 
         <div class="movies-container">
@@ -305,8 +331,8 @@ $conn->close();
                             <button class="book-now" onclick="showBookingForm(<?php echo $movie['id']; ?>)">Book Now</button>
                         </div>
 
-                        <div class="booking-form" id="booking-form-<?php echo $movie['id']; ?>">
-                            <form method="POST">
+                        <div class="booking-form" id="booking-form-<?php echo $movie['id']; ?>" style="display: none;">
+                            <form method="POST" onsubmit="return calculateAndShowPrice(<?php echo $movie['id']; ?>, <?php echo $movie['price']; ?>)">
                                 <div class="form-group">
                                     <label for="num_tickets">Number of Tickets:</label>
                                     <input type="number" name="num_tickets" id="num_tickets" min="1" required>
